@@ -18,6 +18,8 @@ const boardDefault = [
   [boardCellDefault, boardCellDefault, boardCellDefault, boardCellDefault, boardCellDefault],
 ];
 
+const emptyCellsDefault = [0, 1, 2, 3, 4];
+
 function useTrait(initialValue) {
   const [trait, updateTrait] = useState(initialValue);
 
@@ -72,6 +74,7 @@ function App() {
   const personPos = useTrait(0);
   const attempt = useTrait(0);
   const isWin = useTrait(false);
+  const emptyCells = useTrait(emptyCellsDefault);
 
   const checkBtnRef = useRef(0);
   const borderRef = useRef(0);
@@ -143,6 +146,7 @@ function App() {
       personPos.set(0);
       attempt.set(attempt.get()+1);
       selectedPersons.set([]);
+      emptyCells.set(emptyCellsDefault);
     }
     checkBtnRef.current.disabled = true;
   };
@@ -161,6 +165,7 @@ function App() {
     if (personPos.get() < N_PERSONS) {
       if (person.selected === false) {
         selectPerson(person);
+        emptyCells.set(emptyCells.get().filter(emptyCell=>emptyCell!==personPos.get()))
         personPos.set(personPos.get()+1);
       }
     }
@@ -168,7 +173,33 @@ function App() {
   };
 
   const onCellClick = (event) => {
-    console.log('cancel one');
+    const cell = event.target;
+    const id = cell.parentNode.id;
+    const cells = document.querySelectorAll('.card');
+    const targetCell = cell.parentNode;
+    const targetCellIndex = Array.from(cells).indexOf(targetCell);
+
+    const newEmptyCells = emptyCells.get();
+    newEmptyCells.push(targetCellIndex-N_PERSONS*attempt.get());
+    newEmptyCells.sort();
+    emptyCells.set(newEmptyCells);
+    console.log(emptyCells.get());
+    personPos.set(emptyCells.get()[0]);
+    
+
+    const newBoard = board.get();
+    newBoard[attempt.get()][targetCellIndex-N_PERSONS*attempt.get()] = boardCellDefault;
+    const newPersons = persons.map(person=>{
+      if(person.id===id) person.selected=false;
+      return person;
+    })
+    setPersons(newPersons);
+    console.log();
+    board.set(newBoard)
+    console.log(targetCellIndex);
+    selectedPersons.set(() => {
+      return persons.filter(person=>person.id !== id)
+    });
   }
 
   const onCloseClick = () => {
@@ -282,17 +313,3 @@ function App() {
 }
 
 export default App;
-
-/*
-   const id = event.target.parentNode.id;
-    const cells = document.querySelectorAll('.card');
-    const targetCell = event.target.parentNode;
-    const targetCellIndex = Array.from(cells).indexOf(targetCell);
-    const newBoard = [...board.get()];
-    newBoard[attempt][targetCellIndex];
-    board.set()
-    console.log(targetCellIndex);
-    selectedPersons.set(() => {
-      return persons.filter(person=>person.id !== id)
-    });
-*/
