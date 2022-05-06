@@ -18,8 +18,6 @@ const boardDefault = [
   [boardCellDefault, boardCellDefault, boardCellDefault, boardCellDefault, boardCellDefault],
 ];
 
-const emptyCellsDefault = [0, 1, 2, 3, 4];
-
 function useTrait(initialValue) {
   const [trait, updateTrait] = useState(initialValue);
 
@@ -31,7 +29,7 @@ function useTrait(initialValue) {
     current = newValue;
     updateTrait(newValue);
     return current;
-  }
+  };
 
   return {
     get,
@@ -74,11 +72,11 @@ function App() {
   const personPos = useTrait(0);
   const attempt = useTrait(0);
   const isWin = useTrait(false);
-  const emptyCells = useTrait(emptyCellsDefault);
 
   const checkBtnRef = useRef(0);
   const borderRef = useRef(0);
   const resultBlockRef = useRef(0);
+  const cancelLastBtnRef = useRef(0);
 
   const fetchData = () => {
     fetch('https://api.pantheon.world/person')
@@ -96,6 +94,7 @@ function App() {
           id: data[index].id,
           name: data[index].name,
           slug: data[index].slug,
+          birthdate: data[index].birthdate,
           birthyear: data[index].birthyear,
           imgURL: `https://pantheon.world/images/profile/people/${data[index].id}.jpg`,
           selected: false
@@ -105,6 +104,11 @@ function App() {
       setPersons(persons);
       setSortedPersons(() => {
           let list = [...persons].sort((a, b) =>{
+            if(a.birthyear===b.birthyear){
+              const dateA = new Date(a.birthdate);
+              const dateB = new Date();
+              return dateA - dateB;
+            }
             return a.birthyear - b.birthyear;
           }); 
           return list;
@@ -112,15 +116,15 @@ function App() {
       );  
     });
   };
-  
+
   const findPerson = (id) => {
     const person = persons.find(person => person.id === id);
     return person;
   };
 
-  const checkResult = () => {
+  const onCheckClick = () => {
     const newPersons = [...persons];
-    newPersons.map(person => person.selected = false);
+    newPersons.forEach(person => person.selected = false);
     setPersons(newPersons);
 
     const cells = document.querySelectorAll('.card');
@@ -139,16 +143,16 @@ function App() {
     isWin.set(correctPersons.splice(0,N_PERSONS-2).every(el=>el===true));
     if(isWin.get()){
       resultBlockRef.current.style.display = 'block';
-    } else if(attempt.get() === MAX_ATTEMPTS){
+    } else if(attempt.get() === MAX_ATTEMPTS - 1){
       resultBlockRef.current.style.display = 'block';
     } else {
       board.set(newBoard);
       personPos.set(0);
       attempt.set(attempt.get()+1);
       selectedPersons.set([]);
-      emptyCells.set(emptyCellsDefault);
     }
     checkBtnRef.current.disabled = true;
+    cancelLastBtnRef.current.disabled = true;
   };
 
   const selectPerson = (person) => {
@@ -165,41 +169,29 @@ function App() {
     if (personPos.get() < N_PERSONS) {
       if (person.selected === false) {
         selectPerson(person);
-        emptyCells.set(emptyCells.get().filter(emptyCell=>emptyCell!==personPos.get()))
         personPos.set(personPos.get()+1);
       }
     }
     if(personPos.get() > N_PERSONS - 1) checkBtnRef.current.disabled = false;
+    cancelLastBtnRef.current.disabled = false;
   };
 
-  const onCellClick = (event) => {
-    const cell = event.target;
-    const id = cell.parentNode.id;
-    const cells = document.querySelectorAll('.card');
-    const targetCell = cell.parentNode;
-    const targetCellIndex = Array.from(cells).indexOf(targetCell);
-
-    const newEmptyCells = emptyCells.get();
-    newEmptyCells.push(targetCellIndex-N_PERSONS*attempt.get());
-    newEmptyCells.sort();
-    emptyCells.set(newEmptyCells);
-    console.log(emptyCells.get());
-    personPos.set(emptyCells.get()[0]);
-    
-
+  const onCancelLastClick = () => {
+    const id = selectedPersons.get()[selectedPersons.get().length-1].id;
     const newBoard = board.get();
-    newBoard[attempt.get()][targetCellIndex-N_PERSONS*attempt.get()] = boardCellDefault;
+    newBoard[attempt.get()][personPos.get()-1] = boardCellDefault;
+    
     const newPersons = persons.map(person=>{
       if(person.id===id) person.selected=false;
       return person;
     })
     setPersons(newPersons);
-    console.log();
-    board.set(newBoard)
-    console.log(targetCellIndex);
-    selectedPersons.set(() => {
-      return persons.filter(person=>person.id !== id)
-    });
+
+    const newSelectedPersons = selectedPersons.get();
+    newSelectedPersons.pop();
+    selectedPersons.set(newSelectedPersons);
+
+    personPos.set(personPos.get()-1)
   }
 
   const onCloseClick = () => {
@@ -212,6 +204,7 @@ function App() {
     setSortedPersons([]);
     fetchData();
     checkBtnRef.current.disabled = true;
+    cancelLastBtnRef.current.disabled = true;
     resultBlockRef.current.style.display = 'none';
   },[]);
 
@@ -240,7 +233,7 @@ function App() {
                                 <div className='card'></div>
                               </li>
                             } else {
-                              return <Person data={cell.person} onClick={onCellClick} title={false} key={cell.person.id}/>
+                              return <Person data={cell.person} title={false} key={cell.person.id}/>
                             }
                           })
                         }
@@ -261,7 +254,8 @@ function App() {
               </ul>
             </div>
             <div>
-              <button className='check-btn' ref={checkBtnRef} onClick={checkResult}>Check</button>
+              <button className='btn check-btn' ref={checkBtnRef} onClick={onCheckClick}>Check</button>
+              <button className='btn cancelLast-btn' ref={cancelLastBtnRef} onClick={onCancelLastClick}>Cancel last</button>
             </div>
           </div>
         </div>
