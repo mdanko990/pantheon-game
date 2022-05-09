@@ -40,7 +40,7 @@ function Person({data, onClick, isBoardItem}) {
     img.src = data.imgURL;
 
     img.onerror = () => {
-      setImgURL('./icons/icon-person.svg');
+      setImgURL('./../public/icon-person.svg');
     };
   });
 
@@ -74,8 +74,8 @@ function App() {
   const cancelLastBtnRef = useRef(0);
   const rulesBlockRef = useRef(0);
 
-  const fetchData = () => {
-    fetch('https://api.pantheon.world/person')
+  const fetchData = async () => {
+    return await fetch('https://api.pantheon.world/person')
     .then(res=>res.json())
     .then(data=>{
       return data.filter(person => person.hpi >= +80 || person.l > +100);
@@ -333,7 +333,7 @@ function App() {
                   {
                     return <li key={person.id}>
                       <a className='result-link' href={`https://pantheon.world/profile/person/${person.slug}`}>
-                        {person.name}
+                        {person.name} ({person.birthyear})
                       </a>
                     </li>
                   })
