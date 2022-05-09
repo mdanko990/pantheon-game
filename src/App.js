@@ -40,7 +40,7 @@ function Person({data, onClick, isBoardItem}) {
     img.src = data.imgURL;
 
     img.onerror = () => {
-      setImgURL('./../public/icon-person.svg');
+      setImgURL('./icons/icon-person.svg');
     };
   });
 
@@ -333,7 +333,7 @@ function App() {
                   {
                     return <li key={person.id}>
                       <a className='result-link' href={`https://pantheon.world/profile/person/${person.slug}`}>
-                        {person.name} ({person.birthyear})
+                        {person.name} ({person.birthdate})
                       </a>
                     </li>
                   })

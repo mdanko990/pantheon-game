@@ -166,13 +166,12 @@
 .result-links-list {
   display: flex;
   flex-direction: column;
+  list-style: none;
 }
 
 .result-link {
   font-weight: 600;
-  list-style: none;
   text-decoration: none;
-  color: #4b4a48;
 }
 
 .close-btn-block {
