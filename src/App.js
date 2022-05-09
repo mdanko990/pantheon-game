@@ -9,22 +9,17 @@ const boardCellDefault = {
   isCorrect: false
 };
 
-const boardDefault = [
-  [boardCellDefault, boardCellDefault, boardCellDefault, boardCellDefault, boardCellDefault],
-  [boardCellDefault, boardCellDefault, boardCellDefault, boardCellDefault, boardCellDefault],
-  [boardCellDefault, boardCellDefault, boardCellDefault, boardCellDefault, boardCellDefault],
-  [boardCellDefault, boardCellDefault, boardCellDefault, boardCellDefault, boardCellDefault],
-  [boardCellDefault, boardCellDefault, boardCellDefault, boardCellDefault, boardCellDefault],
-  [boardCellDefault, boardCellDefault, boardCellDefault, boardCellDefault, boardCellDefault],
-];
+const boardDefault = (() =>{
+  return Array.from({ length:MAX_ATTEMPTS }, () => (
+    Array.from({ length:N_PERSONS }, ()=> boardCellDefault)
+  ));
+})();
 
 function useTrait(initialValue) {
   const [trait, updateTrait] = useState(initialValue);
 
   let current = trait;
-
   const get = () => current;
-
   const set = newValue => {
     current = newValue;
     updateTrait(newValue);
@@ -37,26 +32,26 @@ function useTrait(initialValue) {
   };
 }
 
-function Person({data, onClick, title}) {
+function Person({data, onClick, isBoardItem}) {
   const [imgURL, setImgURL] = useState(data.imgURL);
-
+  
   useEffect(()=>{
     const img = new Image();
     img.src = data.imgURL;
 
     img.onerror = () => {
-      setImgURL('https://pantheon.world/images/icons/icon-person.svg');
+      setImgURL('./icons/icon-person.svg');
     };
   });
 
   return(
     <li className='game-row-list-item' key={data.id} onClick={onClick}>
-    <div className='card' id={data.id}>
+    <div className={`card ${isBoardItem?'board-item':''}`} id={data.id}>
       <img className='card-image' src={imgURL} alt={`Photo of ${data.name}`}/>
-      {title ?
-      <div className='card-title'>{data.name}</div>
-      :
+      {isBoardItem ?
       <></>
+      :
+      <div className='card-title'>{data.name}</div>
       }
     </div>
   </li>
@@ -74,9 +69,10 @@ function App() {
   const isWin = useTrait(false);
 
   const checkBtnRef = useRef(0);
-  const borderRef = useRef(0);
+  const bordRef = useRef(0);
   const resultBlockRef = useRef(0);
   const cancelLastBtnRef = useRef(0);
+  const rulesBlockRef = useRef(0);
 
   const fetchData = () => {
     fetch('https://api.pantheon.world/person')
@@ -87,6 +83,7 @@ function App() {
     .then(data=>{
       const length = data.length;
       let persons = [];
+      
       for(let i = 0; i < N_PERSONS; i++){
         const index = Math.floor(Math.random() * length);
 
@@ -99,9 +96,12 @@ function App() {
           imgURL: `https://pantheon.world/images/profile/people/${data[index].id}.jpg`,
           selected: false
         };
+        
         persons.push(person);
       }
+      
       setPersons(persons);
+      
       setSortedPersons(() => {
           let list = [...persons].sort((a, b) =>{
             if(a.birthyear===b.birthyear){
@@ -109,8 +109,10 @@ function App() {
               const dateB = new Date();
               return dateA - dateB;
             }
+            
             return a.birthyear - b.birthyear;
           }); 
+          
           return list;
         }
       );  
@@ -119,17 +121,20 @@ function App() {
 
   const findPerson = (id) => {
     const person = persons.find(person => person.id === id);
+    
     return person;
   };
 
   const onCheckClick = () => {
     const newPersons = [...persons];
+
     newPersons.forEach(person => person.selected = false);
     setPersons(newPersons);
 
     const cells = document.querySelectorAll('.card');
     let newBoard = [...board.get()];
     let correctPersons = []
+
     newBoard[attempt.get()].map((cell, i) => {
       if(selectedPersons.get()[i].id === sortedPersons[i].id){
         cell.isCorrect = true;
@@ -140,7 +145,9 @@ function App() {
         cells[N_PERSONS*attempt.get()+i].className = 'card wrong';
       };
     })
-    isWin.set(correctPersons.splice(0,N_PERSONS-2).every(el=>el===true));
+
+    isWin.set(correctPersons.every(el=>el===true));
+    
     if(isWin.get()){
       resultBlockRef.current.style.display = 'block';
     } else if(attempt.get() === MAX_ATTEMPTS - 1){
@@ -151,50 +158,72 @@ function App() {
       attempt.set(attempt.get()+1);
       selectedPersons.set([]);
     }
+    
     checkBtnRef.current.disabled = true;
     cancelLastBtnRef.current.disabled = true;
   };
 
   const selectPerson = (person) => {
     let newBoard = [...board.get()];
+    
     newBoard[attempt.get()][personPos.get()] = {person: person, isCorrect: false};
     newBoard[attempt.get()][personPos.get()].person.selected = true;
     board.set(newBoard);
+    
     selectedPersons.set([...selectedPersons.get(), person]);
   }
 
   const onPersonClick = (event) => {
     const id = event.target.parentNode.id;
     const person = findPerson(id);
+    
     if (personPos.get() < N_PERSONS) {
       if (person.selected === false) {
         selectPerson(person);
         personPos.set(personPos.get()+1);
       }
     }
+    
     if(personPos.get() > N_PERSONS - 1) checkBtnRef.current.disabled = false;
+    
     cancelLastBtnRef.current.disabled = false;
   };
 
   const onCancelLastClick = () => {
     const id = selectedPersons.get()[selectedPersons.get().length-1].id;
     const newBoard = board.get();
+    
     newBoard[attempt.get()][personPos.get()-1] = boardCellDefault;
     
     const newPersons = persons.map(person=>{
       if(person.id===id) person.selected=false;
+      
       return person;
     })
+
     setPersons(newPersons);
 
     const newSelectedPersons = selectedPersons.get();
+    
     newSelectedPersons.pop();
     selectedPersons.set(newSelectedPersons);
 
-    personPos.set(personPos.get()-1)
+    personPos.set(personPos.get()-1);
+    
+    if(+personPos.get()===0){
+      cancelLastBtnRef.current.disabled = true;
+    }
   }
 
-  const onCloseClick = () => {
+  const onCloseRulesClick = () => {
+    rulesBlockRef.current.style.display = 'none';
+  }
+
+  const onRulesClick = () => {
+    rulesBlockRef.current.style.display = 'block';
+  }
+
+  const onCloseResultClick = () => {
     resultBlockRef.current.style.display = 'none';
   }
 
@@ -205,21 +234,32 @@ function App() {
     fetchData();
     checkBtnRef.current.disabled = true;
     cancelLastBtnRef.current.disabled = true;
-    resultBlockRef.current.style.display = 'none';
   },[]);
 
   return (    
     <div>
       <header className='header'>
-        <h1 className='header-title'>
-          Pantheon
-        </h1>
+        <ul className='header-list'>
+          <li>
+            <button className='header-rules-btn' onClick={onRulesClick}></button>
+          </li>
+          <li>
+            <h1 className='header-title'>
+              Pantheon
+            </h1>
+          </li>
+          <li>
+            <button className='header-restart-btn' onClick={() => window.location.reload(false)}></button>
+          </li>
+        </ul>
       </header>
       <main className='main'>
-        <div className="container">
-          <div className='game' ref={resultBlockRef}>
-            <h2>Who was born first?</h2>
-            <div className='game-grid' ref={borderRef}>
+        <div className='game'>
+          <div className='game-header'>
+            <h2 className='game-name'>Who was born first?</h2>
+          </div>
+          <div className='game-main'>
+            <div className='game-board' ref={bordRef}>
               {
                 <ul>
                 {
@@ -229,11 +269,11 @@ function App() {
                         {
                           row.map((cell, j) => {
                             if(cell.person === null) {
-                              return <li className='game-row-list-item empty' key={j}>
-                                <div className='card'></div>
+                              return <li className='game-row-list-item' key={j}>
+                                <div className='card board-item'></div>
                               </li>
                             } else {
-                              return <Person data={cell.person} title={false} key={cell.person.id}/>
+                              return <Person data={cell.person} isBoardItem={true} key={cell.person.id}/>
                             }
                           })
                         }
@@ -244,26 +284,29 @@ function App() {
                 </ul>
               }
             </div>
-            <div className='game-row'>
-              <ul className='game-row-list'>
-                {
-                  persons.map(person =>
-                    <Person data={person} onClick={onPersonClick} title={true} key={person.id}/>
-                  )
-                }
-              </ul>
+            <div className='game-control'>
+              <div className='game-row'>
+                <ul className='game-row-list images'>
+                  {
+                    persons.map(person =>
+                      <Person data={person} onClick={onPersonClick} isBoardItem={false} key={person.id}/>
+                    )
+                  }
+                </ul>
+              </div>
+              <div className='btn-list'>
+                <button className='btn' ref={checkBtnRef} onClick={onCheckClick}>Check</button>
+                <button className='btn' ref={cancelLastBtnRef} onClick={onCancelLastClick}>Cancel last</button>
+              </div>
             </div>
-            <div>
-              <button className='btn check-btn' ref={checkBtnRef} onClick={onCheckClick}>Check</button>
-              <button className='btn cancelLast-btn' ref={cancelLastBtnRef} onClick={onCancelLastClick}>Cancel last</button>
-            </div>
+
           </div>
         </div>
       </main>
       <div className='result' ref={resultBlockRef}>
-        <div className='result-bg'>
-          <div>
-            <button onClick={onCloseClick}>Close</button>
+        <div className='result-block'>
+          <div className='close-btn-block'>
+            <button className='close-btn' onClick={onCloseResultClick}></button>
           </div>
           {
             isWin.get() ?
@@ -289,7 +332,7 @@ function App() {
                 sortedPersons.map(person=>
                   {
                     return <li key={person.id}>
-                      <a href={`https://pantheon.world/profile/person/${person.slug}`}>
+                      <a className='result-link' href={`https://pantheon.world/profile/person/${person.slug}`}>
                         {person.name}
                       </a>
                     </li>
@@ -298,7 +341,18 @@ function App() {
             </ul>
           </div>
           <div>
-            <button onClick={() => window.location.reload(false)}>Restart</button>
+            <button className='btn' onClick={() => window.location.reload(false)}>Restart</button>
+          </div>
+        </div>
+      </div>
+      <div className='rules' ref={rulesBlockRef}>
+        <div className='rules-block'>
+          <div className='close-btn-block'>
+            <button className='close-btn' onClick={onCloseRulesClick}></button>
+          </div>
+          <div className='rules-text-block'>
+            <p>Guess the order of famous persons from one, who was born earlier, to one, who was born later</p>
+            <p>After each guess, the color of the tiles will change to show how close your guess was to the right order.</p>
           </div>
         </div>
       </div>
