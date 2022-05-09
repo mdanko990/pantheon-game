@@ -75,11 +75,8 @@ function App() {
   const rulesBlockRef = useRef(0);
 
   const fetchData = async () => {
-    return await fetch('https://api.pantheon.world/person')
+    return await fetch('https://api.pantheon.world/person?hpi=gt.80&l=gt.100')
     .then(res=>res.json())
-    .then(data=>{
-      return data.filter(person => person.hpi >= +80 || person.l > +100);
-    })
     .then(data=>{
       const length = data.length;
       let persons = [];
