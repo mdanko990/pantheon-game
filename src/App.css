@@ -215,7 +215,7 @@
     align-items: center;
     margin-left: 20px;
   }
-  .images {
+  .column {
     flex-direction: column;
   }
   .btn-list{
@@ -223,5 +223,15 @@
   }
   .card-title {
     font-size: 12px;
+  }
+  .game-control {
+    justify-content: space-between;
+  }
+  .error-block {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    width: 100px;
   }
 }
