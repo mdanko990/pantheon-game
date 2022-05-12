@@ -51,7 +51,7 @@ function Person({data, onClick, isBoardItem}) {
 function App() {
   const [persons, setPersons] = useState([]);
   const [sortedPersons, setSortedPersons] = useState([]);
-  const [fetchError, setFetchError] = useState(false);
+  const fetchError = useTrait(false);
 
   const selectedPersons = useTrait([]);
   const board = useTrait(boardDefault);
@@ -82,7 +82,7 @@ function App() {
       const length = data.length;
       let persons = [];
       let indexes = [];
-      
+      console.log('in fetchdata')
       while (persons.length < N_PERSONS){
         const index = getRandomIndex(indexes, length);
 
@@ -225,23 +225,20 @@ function App() {
   }
 
   useEffect(()=>{
-    board.set(boardDefault);
-    selectedPersons.set([]);
-    setSortedPersons([]);
-
     fetchData();
 
-    setTimeout(() => {
-      setFetchError(false);
-    }, 60000);
-    if(persons.length > 0){
-      setFetchError(false);
-    } else {
-      setFetchError(true);
-    }
+    try{
+      board.set(boardDefault);
+      selectedPersons.set([]);
+      setSortedPersons([]);
+      checkBtnRef.current.disabled = true;
+      cancelLastBtnRef.current.disabled = true;
 
-    checkBtnRef.current.disabled = true;
-    cancelLastBtnRef.current.disabled = true;
+      console.log('fetching');
+    } catch (err) {
+      console.log('fetching error');
+      fetchError.set(true);
+    }
   },[]);
 
   return (    
@@ -294,7 +291,7 @@ function App() {
             </div>
             <div className='game-control'>
               { 
-                fetchError ?
+                !fetchError.get() ?
                 persons.length > 0 ?
                 <div className='game-row'>
                   <ul className='game-row-list column'>
