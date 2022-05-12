@@ -1,4 +1,4 @@
-*{
+* {
   margin: 0;
   padding: 0;
 }
@@ -21,15 +21,15 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  list-style: none;
   padding: 5px 10px;
+  list-style: none;
 }
 
 .header-rules-btn, .header-restart-btn, .close-btn{
+  border: 1px #fff solid;
+  background-color: #fff;
   background-repeat: no-repeat;
   background-size: cover;
-  background-color: #fff;
-  border: 1px #fff solid;
   cursor: pointer;
 }
 
@@ -56,16 +56,16 @@
 }
 
 .game-name{
-  text-align: center;
-  font-size: 20px;
   margin: 15px 0;
+  font-size: 20px;
+  text-align: center;
 }
 
 .game-row-list {
   display: flex;
   gap: 2px;
-  list-style: none;
   margin: 2px;
+  list-style: none;
 }
 
 .game-row-list-item {
@@ -80,27 +80,27 @@
 }
 
 .card {
+  position: absolute;
+  overflow: hidden;
   width: inherit;
   height: inherit;
-  overflow: hidden;
-  position: absolute;
   box-sizing: border-box;
-  cursor: pointer;
   border: 2px solid #d0c9bf;
+  cursor: pointer;
 }
 
 .card-title{
-  font-family: Marcellus,Times,serif;
-  text-transform: uppercase;
-  font-weight: 600;
-  font-size: 8px;
-  color: #4b4a48;
-  background: rgba(244,244,241,.7) url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAAM0lEQVQoU2P88uXDGR4eARMGHIARJI5PEVgBPkVwBbgUoSjApghDAboirAqQFeFUAFMEAHvkH63uqfBbAAAAAElFTkSuQmCC) repeat;
   bottom: 0;
   position: absolute;
   width: 100%;
   padding: 2px 0;
+  background: rgba(244,244,241,.7) url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAAM0lEQVQoU2P88uXDGR4eARMGHIARJI5PEVgBPkVwBbgUoSjApghDAboirAqQFeFUAFMEAHvkH63uqfBbAAAAAElFTkSuQmCC) repeat;
+  font-size: 8px;
+  font-family: Marcellus,Times,serif;
+  text-transform: uppercase;
+  font-weight: 600;
   text-align: center;
+  color: #4b4a48;
 }
 
 .card-image {

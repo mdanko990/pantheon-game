@@ -33,10 +33,21 @@ function useTrait(initialValue) {
 }
 
 function Person({data, onClick, isBoardItem}) {
+  const [imgURL, setImgURL] = useState(data.imgURL);
+
+  useEffect(()=>{
+    const img = new Image();
+    img.src = data.imgURL;
+
+    img.onerror = () => {
+      setImgURL('https://pantheon.world/images/icons/icon-person.svg');
+    };
+  });
+
   return(
     <li className='game-row-list-item' key={data.id} onClick={onClick}>
     <div className={`card ${isBoardItem?'board-item':''}`} id={data.id}>
-      <img className='card-image' src={data.imgURL} alt={`Photo of ${data.name}`}/>
+      <img className='card-image' src={imgURL} alt={`Photo of ${data.name}`}/>
       {
       !isBoardItem ?
       <div className='card-title'>{data.name}</div>
@@ -51,8 +62,8 @@ function Person({data, onClick, isBoardItem}) {
 function App() {
   const [persons, setPersons] = useState([]);
   const [sortedPersons, setSortedPersons] = useState([]);
+  
   const fetchError = useTrait(false);
-
   const selectedPersons = useTrait([]);
   const board = useTrait(boardDefault);
   const personPos = useTrait(0);
@@ -82,30 +93,20 @@ function App() {
       const length = data.length;
       let persons = [];
       let indexes = [];
-      
+
       while (persons.length < N_PERSONS){
         const index = getRandomIndex(indexes, length);
-
-        const img = new Image();
-        try{
-          img.src = `https://pantheon.world/images/profile/people/${data[index].id}.jpg`;
-          img.onerror = () => {
-            img.src = './icon-person.svg';
-          };  
-          console.log(img.src);
-        } finally {
-          const person = {
-            id: data[index].id,
-            name: data[index].name,
-            slug: data[index].slug,
-            birthdate: data[index].birthdate,
-            birthyear: data[index].birthyear,
-            imgURL: img.src,
-            selected: false
-          };
-          indexes.push(index);
-          persons.push(person);  
-        }
+        const person = {
+          id: data[index].id,
+          name: data[index].name,
+          slug: data[index].slug,
+          birthdate: data[index].birthdate,
+          birthyear: data[index].birthyear,
+          imgURL: `https://pantheon.world/images/profile/people/${data[index].id}.jpg`,
+          selected: false
+        };
+        indexes.push(index);
+        persons.push(person);  
       }
       
       setPersons(persons);
