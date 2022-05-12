@@ -82,21 +82,30 @@ function App() {
       const length = data.length;
       let persons = [];
       let indexes = [];
-      console.log('in fetchdata')
+      
       while (persons.length < N_PERSONS){
         const index = getRandomIndex(indexes, length);
 
-        const person = {
-          id: data[index].id,
-          name: data[index].name,
-          slug: data[index].slug,
-          birthdate: data[index].birthdate,
-          birthyear: data[index].birthyear,
-          imgURL: `https://pantheon.world/images/profile/people/${data[index].id}.jpg`,
-          selected: false
-        };
-        indexes.push(index);
-        persons.push(person);
+        const img = new Image();
+        try{
+          img.src = `https://pantheon.world/images/profile/people/${data[index].id}.jpg`;
+          img.onerror = () => {
+            img.src = './icon-person.svg';
+          };  
+          console.log(img.src);
+        } finally {
+          const person = {
+            id: data[index].id,
+            name: data[index].name,
+            slug: data[index].slug,
+            birthdate: data[index].birthdate,
+            birthyear: data[index].birthyear,
+            imgURL: img.src,
+            selected: false
+          };
+          indexes.push(index);
+          persons.push(person);  
+        }
       }
       
       setPersons(persons);
@@ -225,20 +234,15 @@ function App() {
   }
 
   useEffect(()=>{
-    fetchData();
-
-    try{
-      board.set(boardDefault);
-      selectedPersons.set([]);
-      setSortedPersons([]);
-      checkBtnRef.current.disabled = true;
-      cancelLastBtnRef.current.disabled = true;
-
-      console.log('fetching');
-    } catch (err) {
-      console.log('fetching error');
+    board.set(boardDefault);
+    selectedPersons.set([]);
+    setSortedPersons([]);
+    checkBtnRef.current.disabled = true;
+    cancelLastBtnRef.current.disabled = true;
+    fetchData()
+    .catch((err) => {
       fetchError.set(true);
-    }
+    });
   },[]);
 
   return (    
@@ -345,7 +349,7 @@ function App() {
                   {
                     return <li key={person.id}>
                       <a className='result-link' href={`https://pantheon.world/profile/person/${person.slug}`}>
-                        {person.name} ({person.birthdate})
+                        {person.name} ({person.birthyear})
                       </a>
                     </li>
                   })
