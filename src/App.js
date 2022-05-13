@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import {CopyToClipboard} from 'react-copy-to-clipboard';
 import './App.css';
 
 const N_PERSONS = 5;
@@ -62,19 +63,21 @@ function Person({data, onClick, isBoardItem}) {
 function App() {
   const [persons, setPersons] = useState([]);
   const [sortedPersons, setSortedPersons] = useState([]);
-  
+
   const fetchError = useTrait(false);
   const selectedPersons = useTrait([]);
   const board = useTrait(boardDefault);
   const personPos = useTrait(0);
   const attempt = useTrait(0);
   const isWin = useTrait(false);
+  const resultToShare = useTrait('');
 
   const boardRef = useRef(0);
   const resultBlockRef = useRef(0);
   const rulesBlockRef = useRef(0);
   const cancelLastBtnRef = useRef(0);
   const checkBtnRef = useRef(0);
+  const shareBtn = useRef(0);
 
   const getRandomIndex = (arr, max) => {
     const index = Math.floor(Math.random() * max);
@@ -147,9 +150,11 @@ function App() {
         cell.isCorrect = true;
         correctPersons.push(true);
         cells[N_PERSONS*attempt.get()+i].className = 'card correct';
+        resultToShare.set(resultToShare.get()+'🟩');
       } else {
         correctPersons.push(false);
         cells[N_PERSONS*attempt.get()+i].className = 'card wrong';
+        resultToShare.set(resultToShare.get()+'🟥');
       };
     })
 
@@ -164,6 +169,7 @@ function App() {
       personPos.set(0);
       attempt.set(attempt.get()+1);
       selectedPersons.set([]);
+      resultToShare.set(resultToShare.get()+'\n');
     }
     
     checkBtnRef.current.disabled = true;
@@ -232,6 +238,11 @@ function App() {
 
   const onCloseResultClick = () => {
     resultBlockRef.current.style.display = 'none';
+  }
+
+  const onShareBtnCLick = () => {
+    shareBtn.current.innerHTML = 'Copied!'
+    shareBtn.current.style.backgroundColor = 'rgba(90, 244, 79, 0.5)'
   }
 
   useEffect(()=>{
@@ -358,7 +369,18 @@ function App() {
             </ul>
           </div>
           <div>
-            <button className='btn' onClick={() => window.location.reload(false)}>Restart</button>
+            {
+              isWin.get() ?
+              <div>
+                <CopyToClipboard text={`Pantheon ${attempt.get()+1}/6\n\n${resultToShare.get()}`} onCopy={onShareBtnCLick}>
+                  <button className='btn' ref={shareBtn}>Share</button>
+                </CopyToClipboard>
+              </div>
+              : <></>
+            }
+            <div>
+              <button className='btn' onClick={() => window.location.reload(false)}>Restart</button>
+            </div>
           </div>
         </div>
       </div>
@@ -370,6 +392,7 @@ function App() {
           <div className='rules-text-block'>
             <p>Guess the order of famous persons from one, who was born earlier, to one, who was born later</p>
             <p>After each guess, the color of the tiles will change to show how close your guess was to the right order.</p>
+            <p>Every day there are different persons</p>
           </div>
         </div>
       </div>
