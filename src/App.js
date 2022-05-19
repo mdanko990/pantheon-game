@@ -81,35 +81,59 @@ function App() {
 
   const getRandomIndex = (arr, max) => {
     const index = Math.floor(Math.random() * max);
-
     if (!arr.includes(index)) {
       return index;
     } else {
-      getRandomIndex(arr, max);
+      return getRandomIndex(arr, max);
     }
+  }
+
+  const generatePerson = (data, index) => {
+    return {
+      id: data[index].id,
+      name: data[index].name,
+      slug: data[index].slug,
+      birthdate: data[index].birthdate,
+      birthyear: data[index].birthyear,
+      imgURL: `https://pantheon.world/images/profile/people/${data[index].id}.jpg`,
+      selected: false
+    };
+  }
+
+  const getNewData = (data, lowerLimit, higherLimit) => {
+    return data.filter(person=>person.birthyear>=lowerLimit&&person.birthyear<=higherLimit)
   }
 
   const fetchData = async () => {
     return await fetch('https://api.pantheon.world/person?hpi=gt.80')
     .then(res => res.json())
     .then(data => {
-      const length = data.length;
       let persons = [];
       let indexes = [];
+      let firstIndex = getRandomIndex(indexes, data.length);
+      let firstPerson = generatePerson(data, firstIndex); 
+      indexes.push(firstIndex);
+      persons.push(firstPerson);
+      let lowerLimit = firstPerson.birthyear - 50;
+      let higherLimit = firstPerson.birthyear + 50;
+      let newData = getNewData(data, lowerLimit, higherLimit);
+      while(newData.length < 5){
+        firstIndex = getRandomIndex(indexes, data.length - 1);
+        firstPerson = generatePerson(data, firstIndex);
+        indexes.push(firstIndex);
+        persons.push(firstPerson);
+        lowerLimit = firstPerson.birthyear - 50;
+        higherLimit = firstPerson.birthyear + 50;
+        newData = getNewData(data, lowerLimit, higherLimit);
+      }
 
+      firstIndex = newData.findIndex(person=> person.id === firstPerson.id);
+      indexes[0] = firstIndex;
       while (persons.length < N_PERSONS){
-        const index = getRandomIndex(indexes, length);
-        const person = {
-          id: data[index].id,
-          name: data[index].name,
-          slug: data[index].slug,
-          birthdate: data[index].birthdate,
-          birthyear: data[index].birthyear,
-          imgURL: `https://pantheon.world/images/profile/people/${data[index].id}.jpg`,
-          selected: false
-        };
+        const index = getRandomIndex(indexes, newData.length - 1);
+        const person = generatePerson(newData, index);
         indexes.push(index);
-        persons.push(person);  
+        persons.push(person);
       }
       
       setPersons(persons);
