@@ -1,16 +1,16 @@
 {
   "files": {
     "main.css": "/pantheon-game/static/css/main.7930afe6.css",
-    "main.js": "/pantheon-game/static/js/main.997ec88a.js",
+    "main.js": "/pantheon-game/static/js/main.1ec22c93.js",
     "static/media/icon-question.svg": "/pantheon-game/static/media/icon-question.54e11787ee04db4186db.svg",
     "static/media/icon-close.svg": "/pantheon-game/static/media/icon-close.7d8b1c617db0fcf7f482.svg",
     "static/media/icon-restart.svg": "/pantheon-game/static/media/icon-restart.b51e5c618e20b39aed85.svg",
     "index.html": "/pantheon-game/index.html",
     "main.7930afe6.css.map": "/pantheon-game/static/css/main.7930afe6.css.map",
-    "main.997ec88a.js.map": "/pantheon-game/static/js/main.997ec88a.js.map"
+    "main.1ec22c93.js.map": "/pantheon-game/static/js/main.1ec22c93.js.map"
   },
   "entrypoints": [
     "static/css/main.7930afe6.css",
-    "static/js/main.997ec88a.js"
+    "static/js/main.1ec22c93.js"
   ]
 }
