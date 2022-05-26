@@ -96,7 +96,8 @@ function App() {
 
   return (    
     <div>
-      <Header rulesRef={rulesBlockRef}/>
+      <Rules rulesBlockRef={rulesBlockRef}/>
+      <Header rulesBlockRef={rulesBlockRef}/>
       <Game MAX_ATTEMPTS={MAX_ATTEMPTS}
             N_PERSONS={N_PERSONS}
             fetchError={fetchError}
@@ -118,7 +119,6 @@ function App() {
               isWin={isWin}
               resultToShare={resultToShare}
               resultBlockRef={resultBlockRef}/>
-      <Rules rulesBlockRef={rulesBlockRef}/>
     </div>
   );
 }
